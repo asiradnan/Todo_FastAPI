@@ -22,7 +22,11 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
+)
 SessionDep = Annotated[Session, Depends(get_session)]
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 conf = ConnectionConfig(
@@ -41,7 +45,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/create_accoount/", status_code=201)
+@app.post("/create_account/", status_code=201)
 async def create_account(user: UserCreate, session: SessionDep) -> UserPublic:
     lookup_user_by_username = select(User).where(User.username == user.username)
     existing_user = session.exec(lookup_user_by_username).first()
