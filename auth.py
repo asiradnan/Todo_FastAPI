@@ -9,11 +9,14 @@ from models import User, TokenData
 from jwt.exceptions import InvalidTokenError
 from db import get_session
 import jwt
+from dotenv import load_dotenv
+
+load_dotenv()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = os.environ.get("SECRET_KEY")
-ALGORITHM = os.environ.get("ALGORITHM")
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 SessionDep = Annotated[Session, Depends(get_session)]
 
 

@@ -56,7 +56,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/create_account/", status_code=201)
+@app.post("/create_account", status_code=201)
 async def create_account(user: UserCreate, session: SessionDep) -> UserPublic:
     lookup_user_by_username = select(User).where(User.username == user.username)
     existing_user = session.exec(lookup_user_by_username).first()
@@ -90,12 +90,12 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/me/", response_model=UserPublic)
+@app.get("/me", response_model=UserPublic)
 async def me(current_user: UserDep):
     return current_user
 
 
-@app.post("/update_user/", status_code=201)
+@app.post("/update_user", status_code=201)
 async def update_user(current_user: UserDep, user_infos: UserUpdate, session: SessionDep) -> dict:
     if user_infos.username:
         lookup_user_by_username = select(User).where(User.username == user_infos.username)
@@ -128,7 +128,7 @@ async def update_user(current_user: UserDep, user_infos: UserUpdate, session: Se
     return {"user": user}
 
 
-@app.post("/change_password/", status_code=201, response_model=UserPublic)
+@app.post("/change_password", status_code=201, response_model=UserPublic)
 async def change_password(current_user: UserDep, old_password: str, new_password: str, session: SessionDep):
     if not verify_password(old_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Old password is incorrect")
@@ -140,7 +140,7 @@ async def change_password(current_user: UserDep, old_password: str, new_password
     return current_user
 
 
-@app.get("/remove_email/", status_code=200)
+@app.get("/remove_email", status_code=200)
 async def remove_email(current_user: UserDep, session: SessionDep) -> dict:
     current_user.email = None
     session.add(current_user)
@@ -149,7 +149,7 @@ async def remove_email(current_user: UserDep, session: SessionDep) -> dict:
     return {"message": "Email removed successfully"}
 
 
-@app.post("/get_verify_token/")
+@app.post("/get_verify_token")
 async def get_verify_token(current_user: UserDep) ->  dict:
     if not current_user.email:
         raise HTTPException(status_code=400, detail="Email is not provided")
@@ -175,7 +175,7 @@ async def get_verify_token(current_user: UserDep) ->  dict:
     return {"message": "email has been sent"}
 
 
-@app.post("/verify_email/")
+@app.post("/verify_email")
 async def verify_email(verify_token: str, session: SessionDep):
     try:
         payload = jwt.decode(verify_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
@@ -190,7 +190,7 @@ async def verify_email(verify_token: str, session: SessionDep):
         raise HTTPException(status_code=400, detail="Invalid token")
     
 
-@app.get("/get_password_reset_token/")
+@app.get("/get_password_reset_token")
 async def get_password_reset_token(email: EmailStr, session:  SessionDep) -> dict:
     user = session.exec(select(User).where(User.email == email)).first()
     if not user:
@@ -217,7 +217,7 @@ async def get_password_reset_token(email: EmailStr, session:  SessionDep) -> dic
     return {"message": "email has been sent"}
 
 
-@app.post("/reset_password/")
+@app.post("/reset_password")
 async def reset_password(password_reset_token: str, new_password: str, session: SessionDep):
     try:
         payload = jwt.decode(password_reset_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
@@ -233,7 +233,7 @@ async def reset_password(password_reset_token: str, new_password: str, session: 
         raise HTTPException(status_code=400, detail="Invalid token")
 
 
-@app.post("/add_task/", status_code=201)
+@app.post("/add_task", status_code=201)
 def create_task(task_received: TaskCreate, session: SessionDep) -> TaskPublic:
     task = Task.model_validate(task_received)
     session.add(task)
@@ -242,7 +242,7 @@ def create_task(task_received: TaskCreate, session: SessionDep) -> TaskPublic:
     return task
 
 
-@app.get("/get_tasks/", status_code=200)
+@app.get("/get_tasks", status_code=200)
 def get_tasks(session: SessionDep) -> list[TaskPublic]:
     tasks = session.exec(select(Task)).all()
     return tasks
