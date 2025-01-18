@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
-    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
+    # docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    # redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
 )
 origins = [
     "*"
@@ -234,25 +234,27 @@ async def reset_password(password_reset_token: str, new_password: str, session: 
 
 
 @app.post("/add_task", status_code=201)
-def create_task(task_received: TaskCreate, session: SessionDep) -> TaskPublic:
-    task = Task.model_validate(task_received)
-    session.add(task)
+def create_task(task_received: TaskCreate, session: SessionDep, current_user : UserDep) -> TaskPublic:
+    new_task = Task(description=task_received.description, due_date = task_received.due_date, due_time=task_received.due_time, user_id=current_user.id)
+    session.add(new_task)
     session.commit()
-    session.refresh(task)
-    return task
+    session.refresh(new_task)
+    return new_task
 
 
 @app.get("/get_tasks", status_code=200)
-def get_tasks(session: SessionDep) -> list[TaskPublic]:
-    tasks = session.exec(select(Task)).all()
+def get_tasks(session: SessionDep, current_user: UserDep) -> list[TaskPublic]:
+    tasks = session.exec(select(Task).where(Task.user_id == current_user.id)).all()
     return tasks
 
 
 @app.put("/edit_task/{task_id}", status_code=200)
-def edit_task(task_id: int, task: TaskUpdate, session: SessionDep) -> TaskPublic:
+def edit_task(task_id: int, task: TaskUpdate, session: SessionDep, current_user: UserDep) -> TaskPublic:
     current_task = session.get(Task, task_id)
     if not current_task:
-        raise HTTPException(status_code=404, detail = "Task not found!")
+        return HTTPException(status_code=404, detail = "Task not found!")
+    if current_task.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail = "User not authorized to edit this task!")
     task_data = task.model_dump(exclude_unset=True)
     current_task.sqlmodel_update(task_data)
     session.add(current_task)
@@ -262,10 +264,11 @@ def edit_task(task_id: int, task: TaskUpdate, session: SessionDep) -> TaskPublic
 
 
 @app.delete("/delete/{task_id}", status_code=200)
-def delete_task(task_id: int, session: SessionDep) -> dict:
+def delete_task(task_id: int, session: SessionDep, current_user: UserDep) -> dict:
     task = session.get(Task, task_id)
     if not task:
-        raise HTTPException(status_code=404, detail = "Task not found!")
-    session.delete(task)
+        return HTTPException(status_code=404, detail = "Task not found!")
+    if task.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail = "User not authorized to delete this task!")
     session.commit()
     return {"deleted" : True}
