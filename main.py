@@ -34,7 +34,10 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 SessionDep = Annotated[Session, Depends(get_session)]
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
