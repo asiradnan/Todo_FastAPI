@@ -14,9 +14,10 @@ from dotenv import load_dotenv
 import jwt
 from jwt.exceptions import InvalidTokenError
 from pydantic import EmailStr
-
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv('.env')
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
@@ -26,6 +27,14 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
     redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
+)
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins
 )
 SessionDep = Annotated[Session, Depends(get_session)]
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
