@@ -16,6 +16,7 @@ load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY")
+REFRESH_TOKEN_SECRET_KEY = os.getenv("REFRESH_TOKEN_SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -53,6 +54,16 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def create_refresh_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(days=7)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, REFRESH_TOKEN_SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
 
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep):
     credentials_exception = HTTPException(
@@ -73,5 +84,26 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], sessio
     if user is None:
         raise credentials_exception
     return user
+
+async def get_current_user_by_refresh_token(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, REFRESH_TOKEN_SECRET_KEY, algorithms=[ALGORITHM])
+        id: str = payload.get("sub")
+        if id is None:
+            raise credentials_exception
+        token_data = TokenData(id=id)
+    except InvalidTokenError:
+        raise credentials_exception
+    
+    user = session.exec(select(User).where(User.id == token_data.id)).first()
+    if user is None:
+        raise credentials_exception
+    return user
+    
 
 UserDep  = Annotated[User, Depends(get_current_user)]

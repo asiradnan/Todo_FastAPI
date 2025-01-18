@@ -5,7 +5,7 @@ from typing import Annotated
 from sqlmodel import Session, select
 from models import Task, TaskCreate, TaskUpdate, TaskPublic
 from models import User, UserCreate, UserUpdate, UserPublic, Token
-from auth import verify_password, authenticate_user, create_access_token, get_password_hash, UserDep, get_user
+from auth import create_refresh_token, verify_password, authenticate_user, create_access_token, get_password_hash, UserDep, get_user, get_current_user_by_refresh_token
 import os
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
@@ -87,7 +87,25 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     access_token = create_access_token(
         data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, expires_delta=timedelta(days=7)
+    )
+    return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
+
+@app.post("/refresh_token")
+async def refresh_token(refresh_token: dict, session: SessionDep) -> Token:
+    user = await get_current_user_by_refresh_token(refresh_token["refresh_token"], session=session)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+    refresh_token_expires = timedelta(days=7)
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, expires_delta=refresh_token_expires
+    )
+    return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
 @app.get("/me", response_model=UserPublic)
