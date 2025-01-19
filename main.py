@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    # docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
-    # redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
 )
 origins = [
     "*"
