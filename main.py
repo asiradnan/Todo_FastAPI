@@ -288,5 +288,6 @@ def delete_task(task_id: int, session: SessionDep, current_user: UserDep) -> dic
         return HTTPException(status_code=404, detail = "Task not found!")
     if task.user_id != current_user.id:
         raise HTTPException(status_code=403, detail = "User not authorized to delete this task!")
+    session.delete(task)
     session.commit()
     return {"deleted" : True}
