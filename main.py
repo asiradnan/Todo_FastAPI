@@ -16,17 +16,17 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import EmailStr
 from fastapi.middleware.cors import CORSMiddleware
 
-load_dotenv('.env')
+load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
-
+print("environemtn=",os.getenv("PRODUCTION"))
 app = FastAPI(
     lifespan=lifespan,
-    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
-    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
+    docs_url="/docs" if os.getenv("PRODUCTION") != "true" else None,
+    redoc_url="/redoc" if os.getenv("PRODUCTION") != "true" else None
 )
 origins = [
     "*"
@@ -275,6 +275,10 @@ def edit_task(task_id: int, task: TaskUpdate, session: SessionDep, current_user:
         raise HTTPException(status_code=403, detail = "User not authorized to edit this task!")
     task_data = task.model_dump(exclude_unset=True)
     current_task.sqlmodel_update(task_data)
+    if task.delete_date:
+        current_task.due_date = None
+    if task.delete_time:
+        current_task.due_time = None
     session.add(current_task)
     session.commit()
     session.refresh(current_task)

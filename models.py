@@ -54,6 +54,8 @@ class TaskUpdate(SQLModel):
     due_date: date | None = None
     due_time: time | None = None
     priority: int | None = None
+    delete_time: bool| None = None 
+    delete_date: bool | None = None
 
 class TaskPublic(TaskBase):
     id: int
