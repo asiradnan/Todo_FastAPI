@@ -22,7 +22,7 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
-print("environemtn=",os.getenv("PRODUCTION"))
+
 app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs" if os.getenv("PRODUCTION") != "true" else None,
@@ -295,3 +295,13 @@ def delete_task(task_id: int, session: SessionDep, current_user: UserDep) -> dic
     session.delete(task)
     session.commit()
     return {"deleted" : True}
+
+
+@app.delete("/delete_all_completed", status_code=200)
+def delete_task(session: SessionDep, current_user: UserDep) -> dict:
+    statement = select(Task).where(Task.completed == True, Task.user_id == current_user.id)
+    tasks = session.exec(statement).all()
+    for task in tasks:
+        session.delete(task)
+    session.commit()
+    return {"all completed tasks deleted" : True}
