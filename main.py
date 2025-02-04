@@ -183,7 +183,7 @@ async def get_verify_token(current_user: UserDep) ->  dict:
         <h1>Email Verification</h1>
         <h2> IGNORE IF YOU DID NOT REQUEST THIS EMAIL </h2>
         <p> Please click on the following link to verify your email address.</p>
-        <a href="https://todofastapi.asiradnan.com/verify_email?token={verify_token}">Verify Email</a>
+        <a href="https://todofastapi.asiradnan.com/verify_email?verify_token={verify_token}">Verify Email</a>
         """
     message = MessageSchema(
         subject="Confirm Email",
