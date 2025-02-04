@@ -163,6 +163,7 @@ async def change_password(current_user: UserDep, passwords: Passwords, session: 
 @app.get("/remove_email", status_code=200)
 async def remove_email(current_user: UserDep, session: SessionDep) -> dict:
     current_user.email = None
+    current_user.verified = False
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
