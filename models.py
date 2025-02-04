@@ -60,3 +60,7 @@ class TaskUpdate(SQLModel):
 class TaskPublic(TaskBase):
     id: int
     completed: bool
+
+class Passwords(SQLModel):
+    current_password: str
+    new_password: str

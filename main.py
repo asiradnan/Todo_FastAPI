@@ -4,7 +4,7 @@ from db import create_db_and_tables, get_session
 from typing import Annotated
 from sqlmodel import Session, select
 from models import Task, TaskCreate, TaskUpdate, TaskPublic
-from models import User, UserCreate, UserUpdate, UserPublic, Token
+from models import User, UserCreate, UserUpdate, UserPublic, Token, Passwords
 from auth import create_refresh_token, verify_password, authenticate_user, create_access_token, get_password_hash, UserDep, get_user, get_current_user_by_refresh_token
 import os
 from datetime import timedelta
@@ -147,15 +147,17 @@ async def update_user(current_user: UserDep, user_infos: UserUpdate, session: Se
 
 
 @app.post("/change_password", status_code=201, response_model=UserPublic)
-async def change_password(current_user: UserDep, old_password: str, new_password: str, session: SessionDep):
-    if not verify_password(old_password, current_user.hashed_password):
+async def change_password(current_user: UserDep, passwords: Passwords, session: SessionDep):
+    if not verify_password(passwords.current_password, current_user.hashed_password):
         raise HTTPException(status_code=400, detail="Old password is incorrect")
-    hashed_password = get_password_hash(new_password)
+    hashed_password = get_password_hash(passwords.new_password)
     current_user.hashed_password = hashed_password
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
     return current_user
+
+
 
 
 @app.get("/remove_email", status_code=200)
