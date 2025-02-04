@@ -196,7 +196,7 @@ async def get_verify_token(current_user: UserDep) ->  dict:
     return {"message": "email has been sent"}
 
 
-@app.post("/verify_email")
+@app.get("/verify_email")
 async def verify_email(verify_token: str, session: SessionDep):
     try:
         payload = jwt.decode(verify_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
