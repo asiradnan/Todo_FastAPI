@@ -227,7 +227,7 @@ async def get_password_reset_token(data: PasswordResetData, session:  SessionDep
     <h1>Password Reset</h1>
     <h2> IGNORE IF YOU DID NOT REQUEST THIS EMAIL </h2>
     <p> Please click on the following link to reset your password.</p>
-    <a href="https://todo2.asiradnan.com/reset_password?password_reset_token={password_reset_token}">Reset Password</a>
+    <a href="https://todo2.asiradnan.com/reset-password?password_reset_token={password_reset_token}">Reset Password</a>
     """
     message = MessageSchema(
         subject="Reset Password",
