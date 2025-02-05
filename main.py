@@ -243,7 +243,7 @@ async def get_password_reset_token(data: PasswordResetData, session:  SessionDep
 @app.post("/reset_password")
 async def reset_password(data: ConfirmPasswordReset, session: SessionDep):
     try:
-        payload = jwt.decode(data.password_reset_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+        payload = jwt.decode(data.token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
         username: str = payload.get("sub")
         user = get_user(username, session)
         hashed_password = get_password_hash(data.new_password)
