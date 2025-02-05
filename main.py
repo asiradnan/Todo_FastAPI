@@ -4,7 +4,7 @@ from db import create_db_and_tables, get_session
 from typing import Annotated
 from sqlmodel import Session, select
 from models import Task, TaskCreate, TaskUpdate, TaskPublic
-from models import User, UserCreate, UserUpdate, UserPublic, Token, Passwords, PasswordResetData
+from models import User, UserCreate, UserUpdate, UserPublic, Token, Passwords, PasswordResetData, ConfirmPasswordReset
 from auth import create_refresh_token, verify_password, authenticate_user, create_access_token, get_password_hash, UserDep, get_user, get_current_user_by_refresh_token
 import os
 from datetime import timedelta
@@ -241,12 +241,12 @@ async def get_password_reset_token(data: PasswordResetData, session:  SessionDep
 
 
 @app.post("/reset_password")
-async def reset_password(password_reset_token: str, new_password: str, session: SessionDep):
+async def reset_password(data: ConfirmPasswordReset, session: SessionDep):
     try:
-        payload = jwt.decode(password_reset_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
+        payload = jwt.decode(data.password_reset_token, os.getenv("SECRET_KEY"), algorithms=[os.getenv("ALGORITHM")])
         username: str = payload.get("sub")
         user = get_user(username, session)
-        hashed_password = get_password_hash(new_password)
+        hashed_password = get_password_hash(data.new_password)
         user.hashed_password = hashed_password
         session.add(user)
         session.commit()

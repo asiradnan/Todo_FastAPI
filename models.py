@@ -67,3 +67,7 @@ class Passwords(SQLModel):
 
 class PasswordResetData(SQLModel):
     email: EmailStr
+
+class ConfirmPasswordReset(SQLModel):
+    token: str
+    new_password: str
