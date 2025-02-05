@@ -64,3 +64,6 @@ class TaskPublic(TaskBase):
 class Passwords(SQLModel):
     current_password: str
     new_password: str
+
+class PasswordResetData(SQLModel):
+    email: EmailStr

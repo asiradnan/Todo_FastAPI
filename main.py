@@ -4,7 +4,7 @@ from db import create_db_and_tables, get_session
 from typing import Annotated
 from sqlmodel import Session, select
 from models import Task, TaskCreate, TaskUpdate, TaskPublic
-from models import User, UserCreate, UserUpdate, UserPublic, Token, Passwords
+from models import User, UserCreate, UserUpdate, UserPublic, Token, Passwords, PasswordResetData
 from auth import create_refresh_token, verify_password, authenticate_user, create_access_token, get_password_hash, UserDep, get_user, get_current_user_by_refresh_token
 import os
 from datetime import timedelta
@@ -212,9 +212,9 @@ async def verify_email(verify_token: str, session: SessionDep):
         raise HTTPException(status_code=400, detail="Invalid token")
     
 
-@app.get("/get_password_reset_token")
-async def get_password_reset_token(email: EmailStr, session:  SessionDep) -> dict:
-    user = session.exec(select(User).where(User.email == email)).first()
+@app.post("/get_password_reset_token")
+async def get_password_reset_token(data: PasswordResetData, session:  SessionDep) -> dict:
+    user = session.exec(select(User).where(User.email == data["email"])).first()
     if not user:
         raise HTTPException(status_code=400, detail="User not found")
     password_reset_token_expires = timedelta(hours=1)
@@ -225,8 +225,9 @@ async def get_password_reset_token(email: EmailStr, session:  SessionDep) -> dic
     <html>
     <body>
     <h1>Password Reset</h1>
-    <p> Please add the following token to your application to reset your password</p>
-    <p> {password_reset_token} </p>
+    <h2> IGNORE IF YOU DID NOT REQUEST THIS EMAIL </h2>
+    <p> Please click on the following link to reset your password.</p>
+    <a href="https://todofastapi.asiradnan.com/reset_password?password_reset_token={password_reset_token}">Reset Password</a>
     """
     message = MessageSchema(
         subject="Reset Password",
