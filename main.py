@@ -214,7 +214,7 @@ async def verify_email(verify_token: str, session: SessionDep):
 
 @app.post("/get_password_reset_token")
 async def get_password_reset_token(data: PasswordResetData, session:  SessionDep) -> dict:
-    user = session.exec(select(User).where(User.email == data["email"])).first()
+    user = session.exec(select(User).where(User.email == data.email)).first()
     if not user:
         raise HTTPException(status_code=400, detail="User not found")
     password_reset_token_expires = timedelta(hours=1)
