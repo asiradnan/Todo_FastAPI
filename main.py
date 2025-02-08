@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from contextlib import asynccontextmanager
+from fastapi.responses import RedirectResponse
 from db import create_db_and_tables, get_session
 from typing import Annotated
 from sqlmodel import Session, select
@@ -54,7 +55,7 @@ conf = ConnectionConfig(
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
-
+    
 
 @app.post("/create_account", status_code=201)
 async def create_account(user: UserCreate, session: SessionDep) -> UserPublic:
@@ -207,7 +208,7 @@ async def verify_email(verify_token: str, session: SessionDep):
         session.add(user)
         session.commit()
         session.refresh(user)
-        return {"message": "email verified"}
+        return RedirectResponse(url="https://todo2.asiradnan.com")
     except InvalidTokenError:
         raise HTTPException(status_code=400, detail="Invalid token")
     
