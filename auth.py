@@ -24,7 +24,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 def get_user(username: str, session: SessionDep):
     user = session.exec(select(User).where(User.username == username)).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found!")
+        raise HTTPException(status_code=404, detail="Incorrect username")
     return user
 
 def get_password_hash(password) -> str:
