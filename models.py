@@ -39,7 +39,7 @@ class TaskBase(SQLModel):
     priority: int | None = 0
     updated_at: datetime = Field(
         default_factory=datetime.now,
-        sa_column_kwargs={"onupdate": datetime.now()},
+        sa_column_kwargs={"onupdate": datetime.now},
         nullable=False
     )
 
