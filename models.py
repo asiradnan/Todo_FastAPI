@@ -2,7 +2,6 @@ from sqlmodel import Field, SQLModel
 from datetime import date, time, datetime
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship
-from sqlalchemy.sql import func
 
 class UserBase(SQLModel):
     username: str = Field(unique=True, index=True)
@@ -38,6 +37,11 @@ class TaskBase(SQLModel):
     due_date: date | None = None
     due_time: time | None = None
     priority: int | None = 0
+    updated_at: datetime = Field(
+        default_factory=datetime.now,
+        sa_column_kwargs={"onupdate": datetime.now()},
+        nullable=False
+    )
 
 class Task(TaskBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -45,12 +49,7 @@ class Task(TaskBase, table=True):
     user_id: int | None = Field(default=None, foreign_key="user.id")
     user: User | None = Relationship(back_populates="tasks")
 
-    created_at: datetime = Field(default_factory=datetime.now, nullable=False)
-    updated_at: datetime = Field(
-        default_factory=datetime.now,
-        sa_column_kwargs={"onupdate": func.now()},
-        nullable=False
-    )
+    
 
 class TaskCreate(TaskBase):
     pass
