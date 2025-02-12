@@ -37,6 +37,7 @@ class TaskBase(SQLModel):
     due_date: date | None = None
     due_time: time | None = None
     priority: int | None = 0
+    completed: bool | None = False
     updated_at: datetime = Field(
         default_factory=datetime.now,
         sa_column_kwargs={"onupdate": datetime.now},
@@ -45,7 +46,6 @@ class TaskBase(SQLModel):
 
 class Task(TaskBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    completed: bool | None = False
     user_id: int | None = Field(default=None, foreign_key="user.id")
     user: User | None = Relationship(back_populates="tasks")
 

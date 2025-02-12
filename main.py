@@ -259,7 +259,7 @@ async def reset_password(data: ConfirmPasswordReset, session: SessionDep):
 
 @app.post("/add_task", status_code=201)
 def create_task(task_received: TaskCreate, session: SessionDep, current_user : UserDep) -> TaskPublic:
-    new_task = Task(description=task_received.description, due_date = task_received.due_date, due_time=task_received.due_time, user_id=current_user.id)
+    new_task = Task(description=task_received.description, due_date = task_received.due_date, due_time=task_received.due_time, completed=task_received.completed, user_id=current_user.id)
     session.add(new_task)
     session.commit()
     session.refresh(new_task)
